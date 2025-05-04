@@ -15,26 +15,30 @@ class Organization(models.Model):
 
 class User(AbstractUser):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='users')
+    organization = models.ForeignKey(
+        'kudos.Organization',  # Explicit app_label.model_name reference
+        on_delete=models.CASCADE,
+        related_name='users',
+        null=True,  # Make optional in database
+        blank=True  # Make optional in forms
+    )
     remaining_kudos = models.PositiveIntegerField(default=3)
     last_kudo_reset = models.DateTimeField(default=timezone.now)
-    
-    # Add these to resolve the clashes
+
+    # Required for custom user model
     groups = models.ManyToManyField(
         'auth.Group',
         verbose_name='groups',
         blank=True,
-        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
-        related_name="kudos_user_set",
-        related_query_name="kudos_user",
+        related_name='kudos_user_set',
+        related_query_name='kudos_user',
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
         verbose_name='user permissions',
         blank=True,
-        help_text='Specific permissions for this user.',
-        related_name="kudos_user_set",
-        related_query_name="kudos_user",
+        related_name='kudos_user_set',
+        related_query_name='kudos_user',
     )
 
     def reset_kudos(self):
@@ -48,8 +52,16 @@ class User(AbstractUser):
 
 class Kudo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kudos_given')
-    to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='kudos_received')
+    from_user = models.ForeignKey(
+        'kudos.User',  # Explicit app_label.model_name reference
+        on_delete=models.CASCADE,
+        related_name='kudos_given'
+    )
+    to_user = models.ForeignKey(
+        'kudos.User',  # Explicit app_label.model_name reference
+        on_delete=models.CASCADE,
+        related_name='kudos_received'
+    )
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

@@ -30,6 +30,8 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+AUTH_USER_MODEL = 'kudos.User'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -39,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework.authtoken',
-    'kudos'
+    'kudos.apps.KudosConfig',
 ]
 
 REST_FRAMEWORK = {
@@ -51,7 +53,7 @@ REST_FRAMEWORK = {
     ]
 }
 
-AUTH_USER_MODEL = 'kudos.User'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
