@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django import forms
 from .models import Organization, User, Kudo
+from .models import User  # your custom user
+
 
 class OrganizationAdminForm(forms.ModelForm):
     class Meta:
@@ -20,8 +22,17 @@ class OrganizationAdminForm(forms.ModelForm):
                 raise forms.ValidationError("Enter a valid UUID.")
         return id_value
 
+# class CustomUserAdmin(UserAdmin):
+#     form = OrganizationAdminForm  # Use the same form for User model
+#     list_display = ('username', 'email', 'organization', 'remaining_kudos', 'is_staff')
+#     list_filter = ('organization', 'is_staff', 'is_superuser')
+#     fieldsets = UserAdmin.fieldsets + (
+#         ('Organization Info', {'fields': ('organization', 'remaining_kudos', 'last_kudo_reset')}),
+#     )
+#     add_fieldsets = UserAdmin.add_fieldsets + (
+#         ('Organization Info', {'fields': ('organization', 'remaining_kudos')}),
+#     )
 class CustomUserAdmin(UserAdmin):
-    form = OrganizationAdminForm  # Use the same form for User model
     list_display = ('username', 'email', 'organization', 'remaining_kudos', 'is_staff')
     list_filter = ('organization', 'is_staff', 'is_superuser')
     fieldsets = UserAdmin.fieldsets + (
@@ -30,6 +41,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         ('Organization Info', {'fields': ('organization', 'remaining_kudos')}),
     )
+
 
 class KudoAdmin(admin.ModelAdmin):
     list_display = ('id', 'from_user', 'to_user', 'created_at')
