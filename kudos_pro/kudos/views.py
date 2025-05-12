@@ -8,42 +8,38 @@ from .models import User, Kudo
 from .serializers import UserSerializer, KudoSerializer, GiveKudoSerializer
 from rest_framework import permissions 
 from django.db.models import Q
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.authentication import TokenAuthentication
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    # permission_classes = [IsAuthenticated]
-    authentication_classes = []  # Remove TokenAuthentication
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAuthenticated]  # Enforce authentication
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
-        # Temporarily allow all users to be fetched for testing purposes
-        return self.queryset
+        if not self.request.user.is_authenticated:
+            return User.objects.none()
+        return self.queryset.filter(organization=self.request.user.organization)
 
     @action(detail=False, methods=['get'])
     def me(self, request):
-        if not request.user.is_authenticated:
-            return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
 class KudoViewSet(viewsets.ModelViewSet):
     queryset = Kudo.objects.all()
     serializer_class = KudoSerializer
-    # permission_classes = [IsAuthenticated]
-    authentication_classes = []  # Remove TokenAuthentication
-    permission_classes = [permissions.AllowAny]
-
-    # def get_queryset(self):
-    #     print("Requesting user:", self.request.user)
-    #     return self.queryset.filter(
-    #         Q(from_user=self.request.user) | 
-    #         Q(to_user=self.request.user)
-    #     ).order_by('-created_at')
+    authentication_classes = [TokenAuthentication]  # Enabled TokenAuthentication
+    permission_classes = [permissions.IsAuthenticated]  # Enforce authentication
 
     def get_queryset(self):
         if not self.request.user.is_authenticated:
-            return Kudo.objects.none()  # or return an empty queryset safely
+            return Kudo.objects.none()
         return self.queryset.filter(
             Q(from_user=self.request.user) |
             Q(to_user=self.request.user)
